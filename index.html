@@ -25,16 +25,43 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
+        .hourglass-container {
+            position: relative;
+            width: 30px;
+            height: 30px;
+        }
+        
         .hourglass {
             font-size: 24px;
             color: #511c62;
-            transition: transform 0.6s ease;
-            animation: flip 2s infinite;
+            position: absolute;
+            transition: transform 0.8s ease;
         }
         
-        @keyframes flip {
-            0%, 50% { transform: rotate(0deg); }
-            51%, 100% { transform: rotate(180deg); }
+        .hourglass.pouring::after {
+            content: '⋮';
+            position: absolute;
+            left: 50%;
+            top: 60%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #d4af37;
+            animation: pour 0.8s infinite;
+        }
+        
+        @keyframes pour {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0px); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(8px); }
+        }
+        
+        .hourglass.flip {
+            animation: flipHourglass 0.8s ease-in-out;
+        }
+        
+        @keyframes flipHourglass {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg) scale(1.1); }
+            100% { transform: rotate(180deg); }
         }
         
         .timer {
@@ -48,21 +75,20 @@
         .finished {
             color: #ff0000;
         }
-        
-        .finished .hourglass {
-            animation: none;
-            transform: rotate(0deg);
-        }
     </style>
 </head>
 <body>
     <div class="timer-container" id="container">
-        <div class="hourglass">⏳</div>
+        <div class="hourglass-container">
+            <div class="hourglass pouring" id="hourglass">⏳</div>
+        </div>
         <div class="timer" id="timer">30:00</div>
     </div>
 
     <script>
         let timeLeft = 30 * 60;
+        let totalTime = 30 * 60;
+        let hasFlipped = false;
         
         function updateTimer() {
             const minutes = Math.floor(timeLeft / 60);
@@ -70,16 +96,40 @@
             document.getElementById('timer').textContent = 
                 `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
+            const hourglass = document.getElementById('hourglass');
+            
             if (timeLeft > 0) {
                 timeLeft--;
+                
+                if (timeLeft % 300 === 0 && timeLeft > 0 && !hasFlipped) {
+                    hourglass.classList.remove('pouring');
+                    hourglass.classList.add('flip');
+                    
+                    setTimeout(() => {
+                        hourglass.classList.remove('flip');
+                        hourglass.classList.add('pouring');
+                    }, 800);
+                }
+                
             } else {
                 document.getElementById('timer').textContent = "00:00";
                 document.getElementById('container').classList.add('finished');
+                hourglass.classList.remove('pouring');
+                hourglass.textContent = '⌛';
             }
         }
 
         setInterval(updateTimer, 1000);
         updateTimer();
+    </script>
+
+    <script>
+        // Prevent loading in editing interfaces
+        if (window.location !== window.parent.location) {
+            if (document.referrer.includes('edit') || document.referrer.includes('admin')) {
+                document.body.innerHTML = '<div style="padding:20px;text-align:center;color:#511c62;">Timer Preview - Will work on published page</div>';
+            }
+        }
     </script>
 </body>
 </html>
