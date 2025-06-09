@@ -75,9 +75,26 @@
         .finished {
             color: #ff0000;
         }
+        
+        .editor-message {
+            padding: 20px;
+            text-align: center;
+            color: #511c62;
+            font-size: 14px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
+    <script>
+        // Block iframe in editors immediately
+        if (window.self !== window.top) {
+            document.body.innerHTML = '<div class="editor-message">⏰ Timer Preview<br>Will display properly on published page</div>';
+            throw new Error('Blocked in iframe');
+        }
+    </script>
+
     <div class="timer-container" id="container">
         <div class="hourglass-container">
             <div class="hourglass pouring" id="hourglass">⏳</div>
@@ -121,15 +138,6 @@
 
         setInterval(updateTimer, 1000);
         updateTimer();
-    </script>
-
-    <script>
-        // Prevent loading in editing interfaces
-        if (window.location !== window.parent.location) {
-            if (document.referrer.includes('edit') || document.referrer.includes('admin')) {
-                document.body.innerHTML = '<div style="padding:20px;text-align:center;color:#511c62;">Timer Preview - Will work on published page</div>';
-            }
-        }
     </script>
 </body>
 </html>
